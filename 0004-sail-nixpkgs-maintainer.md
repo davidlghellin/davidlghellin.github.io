@@ -1,11 +1,11 @@
 ---
 layout: default
-title: "Maintainer de Sail en nixpkgs"
+title: "Maintainer en nixpkgs"
 date: 2026-03-03
 categories: Blog
 ---
 
-# 🎉 Soy Maintainer de Sail en nixpkgs
+# 🎉 Soy Maintainer en nixpkgs
 
 <p align="center">
   <img src="assets/img/nix_sail.png" alt="Nix + Sail Logo" width="320"/>
@@ -15,7 +15,7 @@ En el [segundo post](0002-nix-sail.md) de este blog escribí:
 
 > _"En el futuro, si tengo tiempo, me gustaría contribuir al empaquetado de pysail para Nix."_
 
-Pues bien, no solo lo he hecho, sino que ahora soy **maintainer oficial de Sail en nixpkgs**. 🚀
+Pues bien, no solo lo he hecho, sino que ahora soy **maintainer en nixpkgs**, y el primer paquete que mantengo es Sail. 🚀
 
 ---
 
