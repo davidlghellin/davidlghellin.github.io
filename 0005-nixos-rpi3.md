@@ -5,7 +5,7 @@ date: 2026-04-12
 categories: Blog
 ---
 
-# Una config, N <img src="assets/img/rpi-logo.svg" alt="" width="28" style="vertical-align: -4px;"/> Raspberries: <img src="assets/img/nixos-logo.svg" alt="" width="28" style="vertical-align: -4px;"/> NixOS en mis rpi3
+# Una config, N <img src="assets/img/rpi-logo.svg" alt="" aria-hidden="true" width="28" style="vertical-align: -4px;"/> Raspberries: <img src="assets/img/nixos-logo.svg" alt="" aria-hidden="true" width="28" style="vertical-align: -4px;"/> NixOS en mis rpi3
 
 <p align="center">
   <img src="assets/img/nixos-logo.svg" alt="NixOS" width="140" style="vertical-align: middle;"/>
