@@ -91,6 +91,52 @@ Diferencia práctica: compilar una imagen completa de rpi3 en la propia pi → *
 
 ---
 
+## 🔗 Cómo el flake enlaza todo
+
+Antes de entrar en la estructura multi-host, vale la pena entender cómo un `flake.nix` arma un sistema NixOS. Este es el mío para la pi, reducido:
+
+```nix
+{
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixos-hardware.url = "github:NixOS/nixos-hardware";
+  };
+
+  outputs = { self, nixpkgs, nixos-hardware }: {
+    nixosConfigurations.rpi3 = nixpkgs.lib.nixosSystem {
+      system = "aarch64-linux";
+      modules = [
+        "${nixpkgs}/nixos/modules/installer/sd-card/sd-image-aarch64.nix"
+        nixos-hardware.nixosModules.raspberry-pi-3
+        ./configuration.nix
+      ];
+    };
+
+    images.rpi3 = self.nixosConfigurations.rpi3.config.system.build.sdImage;
+  };
+}
+```
+
+Lo importante está en **cómo se fusionan los módulos**:
+
+```
+sd-image-aarch64.nix      (cómo construir la imagen de SD)
+        +
+raspberry-pi-3            (firmware, kernel, device tree)
+        +
+./configuration.nix       (MI config: usuarios, servicios)
+        =
+sistema final
+```
+
+Nix hace ese *merge* automáticamente. En la NixOS clásica, `configuration.nix` **es** el sistema. Con flakes, `configuration.nix` es **solo un módulo más** en una composición mayor. Eso es lo que habilita reutilizar módulos de la comunidad (como `nixos-hardware`) sin copiarlos a tu archivo.
+
+Y `flake.lock` (generado automáticamente) guarda los commits exactos de `nixpkgs` y `nixos-hardware`. Eso es lo que da **reproducibilidad real**: hoy compila igual que dentro de tres años.
+
+La última línea (`images.rpi3`) expone la imagen SD como salida del flake, por eso funciona `nix build .#images.rpi3` desde el portátil.
+
+---
+
 ## 🧬 Una config, varias pis
 
 Este es el núcleo del post y lo que justifica el título. La estructura que uso separa **qué se puede hacer** (módulos por rol) de **qué hace cada pi** (hosts):
