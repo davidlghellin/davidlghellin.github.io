@@ -13,7 +13,7 @@ categories: Blog
   <img src="assets/img/rpi-logo.svg" alt="Raspberry Pi" width="110" style="vertical-align: middle;"/>
 </p>
 
-Tengo varias Raspberry Pi 3 dando vueltas por casa. Todas hacen cosas parecidas (DNS, media, algún servicio tonto), pero cada vez que tenía que tocar una era un pequeño drama. Este post cuenta cómo he pasado de *"a ver qué configuré yo aquí hace meses"* a tener **una sola fuente de verdad en git** para todas mis pis.
+Tengo varias Raspberry Pi 3 repartidas entre casa y algún otro sitio. Todas hacen cosas parecidas (DNS, media, algún servicio tonto — cosas que mi router Fritz!Box también podría hacer a medias, pero prefiero tenerlas separadas y bajo mi control), y cada vez que tenía que tocar una era un pequeño drama. Este post cuenta cómo he pasado de *"a ver qué configuré yo aquí hace meses"* a tener **una sola fuente de verdad en git** para todas mis pis.
 
 El repo está aquí: [davidlghellin/nix-os/rpi3](https://github.com/davidlghellin/nix-os/tree/master/rpi3).
 
@@ -27,22 +27,24 @@ Cualquiera que haya tenido una rpi conoce el ciclo:
 2. `sudo apt install` de 15 cosas que recuerdas más o menos.
 3. Editas configs a mano (`/etc/…`), ajustas permisos, abres puertos.
 4. Funciona. Te olvidas.
-5. **6 meses después**: se corrompe la SD, o quieres replicar el setup en otra pi, o simplemente quieres actualizar algo y no te acuerdas de qué tocaste.
+5. **6 meses después**: se corrompe la SD, o quieres replicar el setup en otra pi, o simplemente quieres actualizar algo y no te acuerdas de qué tocaste. Y aunque te acuerdes, nada te asegura que el siguiente `apt upgrade` deje el sistema exactamente igual que antes.
 6. Vuelta a empezar.
 
-Y si tienes **varias rpi3 iguales**, peor todavía: cada una acaba ligeramente distinta. Configuras la primera con calma, la segunda con prisa, la tercera copiando mal lo de la segunda… *drift* garantizado.
+Y si tienes **varias rpi3 iguales**, peor todavía: cada una acaba ligeramente distinta. Configuras la primera con calma, la segunda con prisa, la tercera copiando mal lo de la segunda… *drift* garantizado. Lo suyo sería tener un script que lo deje todo montado de un tirón, pero o da pereza hacerlo, o lo haces y se queda obsoleto al mes.
 
-Lo he hecho tantas veces que ya ni me quejaba. Asumía que era el peaje de tener raspberries.
+Lo he hecho tantas veces que ya ni me quejaba. En el fondo sabía que se podía resolver mejor, pero entre la pereza y la falta de tiempo, seguía asumiendo que era el peaje de tener raspberries.
 
 ---
 
 ## 🎯 Por qué NixOS encaja justo aquí
 
-NixOS le da la vuelta al problema entero:
+Antes de nada: no estoy aquí para vender NixOS como *el* sistema. He usado Arch y Debian durante años, me gustan los dos, y si algo funciona no lo cambias por deporte. Pero ninguno es realmente reproducible — esa es la pieza que faltaba. Y para gestionar varias pis, **reproducibilidad es justo el problema**. Por eso aquí NixOS encaja.
+
+Lo que le da la vuelta al problema entero:
 
 - **Todo está en un `flake.nix`** versionado en git. La config no vive "en la pi", vive en el repo. La pi es solo un sitio donde se aplica.
 - **Misma config → pis idénticas, bit a bit**. Se acabó el drift.
-- **Rollback nativo**: si un `nixos-rebuild` rompe algo, `nixos-rebuild switch --rollback` y vuelves al estado anterior. Sin backups, sin miedo.
+- **Rollback nativo y actualizaciones sin miedo**: actualizo de golpe cuando quiero; si algo se rompe, `nixos-rebuild switch --rollback` y es como si no hubiera pasado nada. Sin backups, sin drama.
 - **Si se muere una SD**: flasheas la imagen, `git pull`, rebuild, y tienes exactamente la misma pi que antes. En 20 minutos.
 
 Es decir: la pi pasa de ser una mascota a la que mimas a ser **ganado desechable**. Y eso cambia completamente cómo la tratas.
@@ -76,7 +78,7 @@ boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
 Y desde el flake del repo:
 
 ```bash
-nix build .#sdImage
+nix build .#images.rpi3
 ```
 
 Eso te genera un `.img` listo para `dd` a la SD:
@@ -93,7 +95,7 @@ Diferencia práctica: compilar una imagen completa de rpi3 en la propia pi → *
 
 ## 🔗 Cómo el flake enlaza todo
 
-Antes de entrar en la estructura multi-host, vale la pena entender cómo un `flake.nix` arma un sistema NixOS. Este es el mío para la pi, reducido:
+Antes de contar cómo están dispuestas las pis, vale la pena entender cómo un `flake.nix` arma un sistema NixOS. Este es el mío para la pi, reducido:
 
 ```nix
 {
@@ -137,39 +139,24 @@ La última línea (`images.rpi3`) expone la imagen SD como salida del flake, por
 
 ---
 
-## 🧬 Una config, varias pis
+## 🧬 La misma pi, en varias redes
 
-Este es el núcleo del post y lo que justifica el título. La estructura que uso separa **qué se puede hacer** (módulos por rol) de **qué hace cada pi** (hosts):
+Aquí viene el detalle que lo hace todo más fácil en mi caso: mis pis **no viven en la misma LAN**. Tengo una en casa, otra en otro sitio — cada una en su propia red. Y eso significa que no hay conflicto entre ellas: puedo darles **exactamente la misma config** sin renombrar nada.
+
+Mismo hostname (`myoboku`), mismo usuario (`wizord`), misma IP estática, mismas SSH keys, mismos servicios en los mismos puertos. Son **literalmente clones**. Cada una en su red piensa que es la única, y yo no tengo que recordar *"ésta era la 192.168.1.10 y la otra la 192.168.2.10"*.
+
+Por eso el repo es tan simple:
 
 ```
 rpi3/
 ├── flake.nix
-├── modules/
-│   ├── common.nix      # usuario, ssh, zsh, cosas compartidas
-│   ├── adguard.nix     # rol: DNS + bloqueo
-│   └── dlna.nix        # rol: media server
-└── hosts/
-    ├── myoboku.nix     # hostname + qué roles activa
-    └── pi2.nix         # otra pi, otros roles
+├── configuration.nix
+└── flake.lock
 ```
 
-La idea clave: los módulos describen **capacidades**, los hosts solo las **componen**. Un host se parece a esto:
+Un solo `configuration.nix` para todas. Cuando reflasheo una SD o monto una pi nueva, no toco nada del repo — `git pull`, rebuild, y funciona. El único "estado" distinto entre pis es su red, y eso lo gestiona el router, no NixOS.
 
-```nix
-{
-  imports = [
-    ../modules/common.nix
-    ../modules/adguard.nix
-    ../modules/dlna.nix
-  ];
-
-  networking.hostName = "myoboku";
-}
-```
-
-Si mañana compro una tercera rpi3 que solo va a ser DNS, el host nuevo son literalmente 5 líneas. Sin copiar config, sin olvidarme de nada, sin drift.
-
-Esta es la diferencia entre *"tengo varias pis"* y *"tengo una flota"*.
+Si el día de mañana necesito una pi con un rol distinto (por ejemplo, una de las dos además como servidor de Home Assistant), ahí sí tocará partir `configuration.nix` en módulos y separar hosts. Pero mientras todas hagan lo mismo en redes distintas, **clones idénticos es exactamente lo que quiero**.
 
 ---
 
@@ -179,8 +166,9 @@ Con la config ya escrita, aplicarla a una pi concreta es un comando desde el por
 
 ```bash
 nixos-rebuild switch \
-  --flake .#myoboku \
+  --flake .#rpi3 \
   --target-host wizord@myoboku \
+  --sudo \
   --use-remote-sudo
 ```
 
@@ -222,9 +210,6 @@ Y eso, después de años reinstalando Raspbian a mano, se siente casi a trampa.
 
 ---
 
-## 📚 Recursos
+## 📚 Posts anteriores
 
-- [Repo nix-os/rpi3](https://github.com/davidlghellin/nix-os/tree/master/rpi3)
-- [NixOS on ARM wiki](https://nixos.wiki/wiki/NixOS_on_ARM)
-- [deploy-rs](https://github.com/serokell/deploy-rs) · [colmena](https://github.com/zhaofengli/colmena)
-- Posts anteriores: [Nix + Sail](0002-nix-sail.md) | [Template Nix](0003-template-nix-sail.md) | [Maintainer en nixpkgs](0004-sail-nixpkgs-maintainer.md)
+[Nix + Sail](0002-nix-sail.md) | [Template Nix](0003-template-nix-sail.md) | [Maintainer en nixpkgs](0004-sail-nixpkgs-maintainer.md)
