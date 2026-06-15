@@ -178,6 +178,34 @@ Para 2-3 pis esto sobra. Cuando tenga más, probablemente migre a [deploy-rs](ht
 
 ---
 
+## 🍎 Actualizar desde el Mac
+
+El portátil de arriba era una NixOS x86, donde `nixos-rebuild` ya viene de serie. Pero a veces el equipo que tengo delante es un **Mac**, que ni es NixOS ni puede construir binarios `aarch64-linux` directamente. Aun así, con Nix instalado, puedo lanzar el deploy igual.
+
+El truco son dos detalles:
+
+- **`nix run nixpkgs#nixos-rebuild`** trae la herramienta al vuelo sin instalar nada permanente (en macOS no existe como comando del sistema).
+- **`--build-host` apuntando a la propia pi**: como el Mac no puede compilar para Linux, dejo que la pi se construya su propio sistema. El Mac solo orquesta.
+
+```bash
+nix run nixpkgs#nixos-rebuild -- switch \
+  --flake .#rpi3 \
+  --target-host wizord@192.168.178.24 \
+  --build-host wizord@192.168.178.24 \
+  --sudo \
+  --use-remote-sudo
+```
+
+Si Nix no responde (recién instalado o terminal nueva), carga el perfil del daemon antes:
+
+```bash
+source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+```
+
+Como `--build-host` y `--target-host` son la misma pi, el Mac no compila nada pesado: descarga la closure, la pi hace el trabajo, y el resultado es idéntico al de desplegar desde la NixOS x86. Mismo flake, misma `flake.lock`, mismo sistema final — el equipo desde el que lanzo da igual.
+
+---
+
 ## 🔄 El flujo completo
 
 ```
