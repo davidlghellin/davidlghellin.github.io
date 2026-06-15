@@ -190,8 +190,8 @@ El truco son dos detalles:
 ```bash
 nix run nixpkgs#nixos-rebuild -- switch \
   --flake .#rpi3 \
-  --target-host wizord@192.168.178.24 \
-  --build-host wizord@192.168.178.24 \
+  --target-host wizord@myoboku \
+  --build-host wizord@myoboku \
   --sudo \
   --use-remote-sudo
 ```
