@@ -167,7 +167,7 @@ git commit + PR → merge ✅
 
 Ser maintainer no es solo subir versiones: también **revisas PRs** — las tuyas antes de abrirlas, y las de otros para ayudar a que se mergeen. La herramienta estándar para esto es [`nixpkgs-review`](https://github.com/Mic92/nixpkgs-review). Hace fetch del cambio a un **worktree aislado**, compila solo los paquetes afectados (o los baja de la caché binaria si ya están), y al terminar te abre una **shell** con ellos construidos para que los pruebes.
 
-Yo normalmente **no la tengo instalada** en el sistema, así que la traigo al vuelo con `nix-shell -p nixpkgs-review` y la ejecuto dentro del mismo comando. Igual que con `nix-update`, no ensucias nada permanente. (Si prefieres, `nix run nixpkgs#nixpkgs-review -- …` hace lo mismo.)
+Yo normalmente **no la tengo instalada** en el sistema, así que la traigo al vuelo con `nix-shell -p nixpkgs-review` y la ejecuto dentro del mismo comando. Igual que con `nix-update`, no ensucias nada permanente. (Si prefieres, `nix run nixpkgs#nixpkgs-review -- <args>` hace lo mismo.)
 
 Hay tres formas de usarla según qué estés revisando.
 
