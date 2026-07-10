@@ -239,8 +239,8 @@ A single `pysail` `default.nix` produces **four** entries: nixpkgs instantiates 
 Three ways to pull that report out to paste it:
 
 ```bash
-# 1. cat + copy straight to the clipboard (macOS)
-cat ~/.cache/nixpkgs-review/pr-539480/report.md | pbcopy
+# 1. copy straight to the clipboard (macOS)
+pbcopy < ~/.cache/nixpkgs-review/pr-539480/report.md
 
 # 2. have nixpkgs-review print it when it finishes
 nix-shell -p nixpkgs-review --run "nixpkgs-review pr 539480 --print-result"

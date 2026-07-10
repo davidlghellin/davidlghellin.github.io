@@ -239,8 +239,8 @@ De un solo `default.nix` de `pysail` salen **cuatro** entradas: nixpkgs lo insta
 Tres formas de sacar ese reporte para pegarlo:
 
 ```bash
-# 1. cat + copiar directo al portapapeles (macOS)
-cat ~/.cache/nixpkgs-review/pr-539480/report.md | pbcopy
+# 1. copiar directo al portapapeles (macOS)
+pbcopy < ~/.cache/nixpkgs-review/pr-539480/report.md
 
 # 2. que nixpkgs-review lo imprima al terminar
 nix-shell -p nixpkgs-review --run "nixpkgs-review pr 539480 --print-result"
