@@ -213,7 +213,9 @@ Measuring what classic actually *does* with it changes the reading. Reading a fi
 
 Not one of those five closures mentions the `day` column. All five load it.
 
-And with a filter in play the pushdown goes too:
+(The `filter` row reads two rather than one because the predicate needs `amount` on top of the column being projected: you cannot filter on a column without reading it. The other four project a single column.)
+
+And with a filter in play the pushdown goes too. Over the same five-column table, keeping one column (`branch`) and filtering on another (`amount`):
 
 | how it is written | filters pushed down | columns read |
 |---|---|---|

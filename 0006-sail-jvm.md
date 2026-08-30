@@ -213,7 +213,9 @@ Medir qué hace clásico *de verdad* con eso cambia la lectura. Leyendo una tabl
 
 Ninguno de esos cinco closures menciona la columna `day`. Los cinco la cargan.
 
-Y con un filtro en juego se va también el pushdown:
+(La fila del `filter` lee dos y no una porque el predicado necesita `amount` además de la columna que se proyecta: no se puede filtrar por una columna sin leerla. Las otras cuatro proyectan una sola.)
+
+Y con un filtro en juego se va también el pushdown. Sobre la misma tabla de cinco columnas, quedándote una (`branch`) y filtrando por otra (`amount`):
 
 | cómo está escrito | filtros empujados | columnas leídas |
 |---|---|---|
