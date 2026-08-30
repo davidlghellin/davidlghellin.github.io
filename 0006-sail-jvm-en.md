@@ -19,9 +19,9 @@ Sail speaks **Spark Connect**. And Spark publishes a JVM client, `spark-connect-
 
 The problem is starting it. Sail is a Rust binary **shipped as a Python wheel**. From Python you `pip install pysail`, run `sail spark server`, and that is that. From the JVM there is nothing at all that brings a server up: no artifact on Maven, no class to call, nothing.
 
-That is what [`sail-testkit`](https://github.com/devel0pez-com/sail-testkit) is. It is the missing piece and nothing more than that: it starts the process, hands you the url, and kills it when the suite ends.
+That is what [`sail-testkit`](https://github.com/devel0pez-com/sail-testkit) is. It is the missing piece and nothing more than that: it starts the process, hands you the URL, and kills it when the suite ends.
 
-And as of yesterday it is **on Maven Central**:
+And it is **on Maven Central**:
 
 ```scala
 libraryDependencies += "com.devel0pez" %% "sail-testkit" % "0.1.0" % Test
